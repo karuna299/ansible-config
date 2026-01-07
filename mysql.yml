@@ -1,0 +1,74 @@
+---
+- name: Install and configure MySQL
+  hosts: web
+  become: yes
+
+  vars:
+    mysql_root_password: rootpass
+    mysql_db: app_db
+    mysql_user: app_user
+    mysql_user_password: app_pass
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install MySQL server
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Ensure MySQL service is running
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Install Python MySQL dependencies
+      apt:
+        name: python3-pymysql
+        state: present
+
+    - name: Set MySQL root password
+      mysql_user:
+        name: root
+        host: localhost
+        password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+
+    - name: Create application database
+      mysql_db:
+        name: "{{ mysql_db }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Create application DB user
+      mysql_user:
+        name: "{{ mysql_user }}"
+        password: "{{ mysql_user_password }}"
+        priv: "{{ mysql_db }}.*:ALL"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Create sample table
+      mysql_query:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        query: |
+          CREATE TABLE IF NOT EXISTS {{ mysql_db }}.users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100),
+            email VARCHAR(100)
+          );
+
+    - name: Insert sample data
+      mysql_query:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        query: |
+          INSERT INTO {{ mysql_db }}.users (name, email)
+          VALUES ('karuna', 'karuna@example.com');

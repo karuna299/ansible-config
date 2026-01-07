@@ -1,0 +1,33 @@
+---
+- name: Install and configure PostgreSQL
+  hosts: web
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install PostgreSQL
+      apt:
+        name:
+          - postgresql
+          - postgresql-contrib
+        state: present
+
+    - name: Ensure PostgreSQL is running
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Copy PostgreSQL seed file
+      copy:
+        src: postgres_seed.sql
+        dest: /tmp/postgres_seed.sql
+        owner: postgres
+        group: postgres
+        mode: '0644'
+
+    - name: Run PostgreSQL seed file
+      shell: sudo -u postgres psql -f /tmp/postgres_seed.sql

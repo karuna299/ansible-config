@@ -1,0 +1,30 @@
+---
+- name: Configure MySQL log rotation via Ansible
+  hosts: web
+  become: yes
+
+  tasks:
+    - name: Ensure logrotate is installed
+      apt:
+        name: logrotate
+        state: present
+
+    - name: Add custom MySQL logrotate policy
+      copy:
+        dest: /etc/logrotate.d/mysql-app
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          /var/log/mysql/*.log {
+              daily
+              rotate 7
+              compress
+              delaycompress
+              missingok
+              notifempty
+              copytruncate
+          }
+
+    - name: Force MySQL log rotation to test
+      command: logrotate -f /etc/logrotate.d/mysql-app
