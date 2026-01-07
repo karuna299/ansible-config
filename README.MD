@@ -85,6 +85,7 @@ Automate the setup of a remote Ubuntu VM using **Ansible** to:
 * Nginx: `/var/log/nginx/`
 * MySQL: `/var/log/mysql/`
 * PostgreSQL: `/var/log/postgresql/`
+![alt text](image-12.png)
 
 **Log Rotation**
 
